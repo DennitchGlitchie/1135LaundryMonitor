@@ -39,6 +39,9 @@ On the Receiver Side:
 Webserver:
 - laundry_webserver.py is AI generated so I designed it's overall function. My goal was to have a status icon at the top "IN USE", "NOT IN USE", "NOT LOGGING". Also a graph of all the recent past readings. Also an output of the history.log file for debugging purposes.
 - Since I own davidgarges.com, I created a custom record for 1135laundrymonitor to be routed to 34.19.58.168. Since I have other web services running on the pi, I used nginx to route based on the DNS(?) lookup. I also used nginx to provide SSL such that I can use https.
+- /etc/nginx/sites-available/1135laundrymonitor
+- sudo ln -s /etc/nginx/sites-available/1135laundrymonitor /etc/nginx/sites-enabled/
+- port translation 6083 to 80
 
 Vulnerabilities:
 - I am constantly logging on both pis, and i am concerned we will fill up on the disk space eventually.
