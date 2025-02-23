@@ -1,0 +1,13 @@
+[Unit]
+Description=AutoSSH tunnel service everythingcli MySQL on local port 5000
+After=network.target
+
+[Service]
+User=garges
+Environment="AUTOSSH_GATETIME=0"
+# ExecStart=/usr/bin/autossh -M 0 -o "ServerAliveInterval 30" -o "ServerAliveCountMax 3" -N -R 0.0.0.0:6002:localhost:22 -R 0.0.0.0:6082:localhost:80 -i /root/.ssh/cloud_vm2 laundry_monitor@34.19.58.168 -o ExitOnForwardFailure=yes
+# ExecStart=/usr/bin/autossh -M 0 -o "ServerAliveInterval 30" -o "ServerAliveCountMax 3" -N -R 0.0.0.0:6003:localhost:22 -i /home/garges/.ssh/cloud_vm2 home_assistant@34.19.58.168 -o ExitOnForwardFailure=yes
+ExecStart=/usr/bin/autossh -M 0 -o "ServerAliveInterval 30" -o "ServerAliveCountMax 3" -N -R 0.0.0.0:6003:localhost:22 -R 0.0.0.0:6083:localhost:80 -i /home/garges/.ssh/cloud_vm2 home_assistant@34.19.58.168 -o ExitOnForwardFailure=yes
+
+[Install]
+WantedBy=multi-user.target
