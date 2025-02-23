@@ -1,0 +1,12 @@
+[Unit]
+Description=Laundry Monitor Webserver Service
+After=network.target
+
+[Service]
+User=root
+WorkingDirectory=/home/garges/LaundryMonitor
+ExecStart=/home/garges/nrf/bin/python /home/garges/LaundryMonitor/laundry_webserver.py
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
