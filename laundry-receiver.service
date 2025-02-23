@@ -1,0 +1,15 @@
+[Unit]
+Description=Laundry Monitor Receiver Service
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/home/garges/LaundryMonitor
+ExecStart=/home/garges/LaundryMonitor/run_laundry_monitor_alg.sh
+Restart=always
+RestartSec=5
+User=garges
+Group=garges
+
+[Install]
+WantedBy=multi-user.target
