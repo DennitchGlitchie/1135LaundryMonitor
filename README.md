@@ -7,10 +7,7 @@ BOM:
 - [1ft Extension Cable](https://www.amazon.com/your-orders/orders?_encoding=UTF8&startIndex=20&ref_=ppx_yo2ov_dt_b_pagination_2_3)
 - [Mounting Box](https://www.amazon.com/dp/B0D5GPMPT1?ref_=ppx_hzsearch_conn_dt_b_fed_asin_title_1&th=1)
 - [USB Extension Cable](https://www.amazon.com/dp/B0793P8XJK?ref=ppx_yo2ov_dt_b_fed_asin_title)
-
-
-
-Raspberry Pi 4 Model B Running Raspberry Pi OS
+- Raspberry Pi 4 Model B Running Raspberry Pi OS
 
 My cloud VM acts as the access point to all my Raspberry Pi Projects. All Raspberry Pi's will reverse SSH into this Pi as well as <port translation> for webserver. I struggle with the SSH and User stuff so I would like to take some time to document here.
 
