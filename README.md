@@ -31,15 +31,15 @@ Setting up the NRF24 Modules:
 | CSN     | 24               | GPIO08 (SPI_CE0_N)    |
 | IRQ     | 18               | GPIO24                |
 
-
-- using virtual python environment
-- soldering capacitors
-- pigpio and it's inability to start/restart and how it defines the algorithm
-- Tuning both sides of the tunnel
-- tuner_receiver.sh and tuner_transmitter.sh
+- I struggled with successful transmission FOREVER. Solution: 100 pF from VCC to GND at the NRF24 module
+- Had to use a virtual python environment to install https://pypi.org/project/nrf24/
+- NOTE: this python package uses pigpiod which has a hard time restarting over and over again. The software design had to adapt to this
+- Once installed, I used tuner_receiver.sh and tuner_transmitter.sh to tune the channel. I ended up choosing channel 96 with power level HIGH
 
 On the Transmit Side:
-- record_process_send.sh
+- autossh.service to set up a reverse tunne to the cloud VM (there is no internet normally on the transmit side)
+- laundry-trasnmitter.service to start record_process_send.sh at boot
+- record_process_send.sh records audio for 1 second and saves it, processes the audio to 
 - record_audio.sh
 - process_audio.py
 - send_audio_analysis.py
