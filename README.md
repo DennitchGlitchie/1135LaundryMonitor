@@ -18,6 +18,19 @@ The cloud VM is at 34.19.58.168 hosted by Google Cloud Console
 | Home Assistant (Raspberry Pi OS) <- Cloud Virtual Machine | garges           | david_garges  | home_assistant               | ssh -p 6003 garges@localhost | ssh -N -R 0.0.0.0:6003:localhost:22 -i /home/garges/.ssh/cloud_vm2 home_assistant@34.19.58.168 |
 
 Setting up the NRF24 Modules:
+- The Wiring of the NR24 to the Raspbery Pis are as follows:
+| NRF Pin | Raspberry Pi Pin | Raspberry Pi Function |
+|---------|------------------|-----------------------|
+| VCC     | 1                | 3.3V DC Power         |
+| GND     | 6                | GND                   |
+| CE      | 11               | GPIO17 (GPIO_GEN0)    |
+| MOSI    | 19               | GPIO10 (SPI_MOSI)     |
+| MISO    | 21               | GPIO09 (SPI_MISO)     |
+| SCK     | 23               | GPIO11 (SPI_CLK)      |
+| CSN     | 24               | GPIO08 (SPI_CE0_N)    |
+| IRQ     | 18               | GPIO24                |
+
+
 - using virtual python environment
 - soldering capacitors
 - pigpio and it's inability to start/restart and how it defines the algorithm
