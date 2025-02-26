@@ -56,8 +56,8 @@ On the Receiver Side:
 - history.log: History of now.log
 - laundry_webserver.py: Creates the Flask Webserver
 
-Detailed Description of Receiver Software Design
-run_laundry_monitor_alg.sh is the main process. It send_audio_analysis.py because the pigpiod service can't be started and stopped. A loop is started (currently 10 second delay) where record_audio.sh is ran to generate now.wav. The python file process_audio.py which has a dictionary to select frequencies for analysis. Any combination of frequencies can be selected and additional can be added. Currently the algorithm is only focussing on 60Hz and the rest are useless.
+Detailed Description of Transmitter Software Design
+run_laundry_monitor_alg.sh is the main process. It starts send_audio_analysis.py because the pigpiod service can't be started and stopped. A loop is started (currently 10 second delay) where record_audio.sh is ran to generate now.wav. The python file process_audio.py which has a dictionary to select frequencies for analysis. Any combination of frequencies can be selected and additional can be added. Currently the algorithm is only focussing on 60Hz and the rest are useless.
 
 frequencies = {
     'Energy60Hz': 60,
@@ -84,19 +84,29 @@ The maximumpayload size is 32, which means
 - Available space for frequency pairs = 32 bytes - 1 byte (for count) = 31 bytes
 - Number of pairs = 31 bytes ÷ 6 bytes per pair = 5.16 pairs or effectively 5 pairs.
 
+Obviously, the longer the payload, the more error prone it is. I am currently running with 2 frequency pairs or a 13 byte payload. 
 
-
-
+Detailed Description of Receiver Software Design
+run_laundry_monitor_alg.sh is the main process. It starts receive_audio_analysis.py because the pigpiod service can't be started and stopped. receive_audio_analysis.py unpacks the payload and recreates the now.log file. run_laundry_monitor_alg.sh monitors now.log every 5 seconds evaluates the data and updates history.log, an ever growing file. run_laundry_monitor_alg.sh will also evaluate and give an output of data based on any currently implemented algorithms. Right now, I have two alrgorithmes used:
+- amplitude algorighm: if the 60Hz reading is above a certain threshold (15.2), the laundry machine is IN USE
+- ratio algorithm: looks at the ratio of energy between 180Hz and 60Hz. This algorithm has an evaluation and output but is not useful at this time. 
 
 Webserver:
-- laundry_webserver.py is AI generated so I designed it's overall function. My goal was to have a status icon at the top "IN USE", "NOT IN USE", "NOT LOGGING". Also a graph of all the recent past readings. Also an output of the history.log file for debugging purposes.
-- Since I own davidgarges.com, I created a custom record for 1135laundrymonitor to be routed to 34.19.58.168. Since I have other web services running on the pi, I used nginx to route based on the DNS(?) lookup. I also used nginx to provide SSL such that I can use https.
-- /etc/nginx/sites-available/1135laundrymonitor
+- laundry_webserver.py is AI generated so I designed it's overall function. I have a banner at the top of the webpage that changes color and indicates IN USE, NOT IN USE, or NOT LOGGING (if nothing received in 2min). This will file will scrape history.log to generate the current status, a graph of historic values, and a tailed output of history.log.
+- NOTE: Unfortunately, laundry_webserver.py and receive_audio_analysis.py need to be aligned in their algorithms. To say it differently, receive_audio_analysis only updates history.log. The status banner on the website has its own threshold value. These two files shoudl be changed in sync with eachother. 
+
+
+
+- Since I own davidgarges.com, I created a custom record for 1135laundrymonitor to be routed to 34.19.58.168 because I have other web services running on the pi.
+- My squarespace domain doesn't let me route 1135laundrymonitor to a port so I also use nginx to translate
+- The Nginx configuration file defines two server blocks for handling requests to the domain 1135laundrymonitor.davidgarges.com. The first block listens on port 443 (HTTPS) and uses SSL certificates managed by Certbot for secure communication. It sets up a reverse proxy, forwarding all incoming traffic on the domain to a local service running on http://127.0.0.1:6083, while also passing several headers (such as the original host and IP) to the backend server. The second block listens on port 80 (HTTP) and redirects any HTTP requests to HTTPS (port 443) using a 301 redirect. If the host matches 1135laundrymonitor.davidgarges.com on port 80, it performs the redirect; otherwise, it returns a 404 error. The SSL-related configurations are managed by Certbot for automatic certificate renewal and secure communication.
+- I had to do the following too:
 - sudo ln -s /etc/nginx/sites-available/1135laundrymonitor /etc/nginx/sites-enabled/
-- port translation 6083 to 80
 
 Vulnerabilities:
 - I am constantly logging on both pis, and i am concerned we will fill up on the disk space eventually.
 - SSL expiration, I haven't done this before so I may have to keep renewing it
-- I got my previous cloud VM hacked or somehting and I may have to completely recreate the cloud VM setup like I did over the last 8 months. 
+- I got my previous cloud VM hacked or something and I may have to completely recreate the cloud VM setup like I did over the last 8 months.
+- laundry_webserver.py and receive_audio_analysis.py need to be aligned in their algorithms - kind of a bummer
+- Since my algorithm is based on amplitude, if things shift, this can change - which was why I was looking into the ratio algorithm but I'm not finding an easy way to use it based of the data so far
 
