@@ -1,12 +1,12 @@
 The purpose of this project is to monitor the single laundry machine (shared by 12 apartment units) to be able to identify if it is "in use" or "not in use. I used a raspberry pi to monitor a current clamp around the power cable of the laundry machine. Since there is no internet downstairs, I used a secondary raspberry pi and NRF24 transcievers to transmit information. The secondary raspberry pi hosts a webserver with the laundry monitor information.
 
 BOM:
-Raspberry Pi 4 Model B Running DietPi OS
-[NRF24 Transcievers](https://buymeacoffee.com/davidgarges](https://www.amazon.com/dp/B00WG9HO6Q?ref_=ppx_hzsearch_conn_dt_b_fed_asin_title_1))
-[USB Sound Card Adapter](https://www.amazon.com/dp/B0BQBT2LCV?ref_=ppx_hzsearch_conn_dt_b_fed_asin_title_3)
-Short Exetnsion Cable
-Mounting Box
-
+- Raspberry Pi 4 Model B Running DietPi OS
+- [NRF24 Transcievers](https://buymeacoffee.com/davidgarges](https://www.amazon.com/dp/B00WG9HO6Q?ref_=ppx_hzsearch_conn_dt_b_fed_asin_title_1))
+- [USB Sound Card Adapter](https://www.amazon.com/dp/B0BQBT2LCV?ref_=ppx_hzsearch_conn_dt_b_fed_asin_title_3)
+- [1ft Extension Cable](https://www.amazon.com/your-orders/orders?_encoding=UTF8&startIndex=20&ref_=ppx_yo2ov_dt_b_pagination_2_3)
+- [Mounting Box](https://www.amazon.com/dp/B0D5GPMPT1?ref_=ppx_hzsearch_conn_dt_b_fed_asin_title_1&th=1)
+- [USB Extension Cable](https://www.amazon.com/dp/B0793P8XJK?ref=ppx_yo2ov_dt_b_fed_asin_title)
 
 
 
