@@ -1,13 +1,16 @@
 The purpose of this project is to monitor the single laundry machine (shared by 12 apartment units) to be able to identify if it is "in use" or "not in use. I used a raspberry pi to monitor a current clamp around the power cable of the laundry machine. Since there is no internet downstairs, I used a secondary raspberry pi and NRF24 transcievers to transmit information. The secondary raspberry pi hosts a webserver with the laundry monitor information.
 
 BOM:
-Raspberry Pi XX Running DietPi OS
-NRF24 Transcivers
-Audio Card
+Raspberry Pi 4 Model B Running DietPi OS
+[NRF24 Transcievers](https://buymeacoffee.com/davidgarges](https://www.amazon.com/dp/B00WG9HO6Q?ref_=ppx_hzsearch_conn_dt_b_fed_asin_title_1))
+[USB Sound Card Adapter](https://www.amazon.com/dp/B0BQBT2LCV?ref_=ppx_hzsearch_conn_dt_b_fed_asin_title_3)
 Short Exetnsion Cable
 Mounting Box
 
-Raspberry Pi XX Running Raspberry Pi OS
+
+
+
+Raspberry Pi 4 Model B Running Raspberry Pi OS
 
 My cloud VM acts as the access point to all my Raspberry Pi Projects. All Raspberry Pi's will reverse SSH into this Pi as well as <port translation> for webserver. I struggle with the SSH and User stuff so I would like to take some time to document here.
 
