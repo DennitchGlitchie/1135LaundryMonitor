@@ -35,23 +35,58 @@ Setting up the NRF24 Modules:
 - Had to use a virtual python environment to install https://pypi.org/project/nrf24/
 - NOTE: this python package uses pigpiod which has a hard time restarting over and over again. The software design had to adapt to this
 - Once installed, I used tuner_receiver.sh and tuner_transmitter.sh to tune the channel. I ended up choosing channel 96 with power level HIGH
+- Used simple_transmitter.py and simple_receiver.py as a test and guide from https://github.com/bjarne-hansen/py-nrf24
 
 On the Transmit Side:
-- autossh.service to set up a reverse tunne to the cloud VM (there is no internet normally on the transmit side)
-- laundry-trasnmitter.service to start record_process_send.sh at boot
-- record_process_send.sh records audio for 1 second and saves it, processes the audio to 
-- record_audio.sh
-- process_audio.py
-- send_audio_analysis.py
-- now.log and now_buffer.log
-- debug.log
+- autossh.service: set up a reverse tunne to the cloud VM (there is no internet normally on the transmit side)
+- laundry-trasnmitter.service: start record_process_send.sh at boot
+- record_process_send.sh: Main process, starts send_audio_analysis.py, loops through record_audio.sh and process_audio.py and generating now.log (with a now_buffer.log)
+- record_audio.sh: Records 1 second of audio and saves it to now.wav
+- process_audio.py: Processes now.wav to generate FFT values. Finds the energy at 60Hz (and other frequencies) as the squared magnitude of the FFT. Is then normalized using a logarithmic scale.
+- send_audio_analysis.py: Runs in parrallel, monitor now.log, sends the energy values over the channel
+- now.log and now_buffer.log: Updated version of the audio analysis, with buffer since now.log is monitored for changes
+- debug.log: debug output
 
 On the Receiver Side:
-- run_laundry_monitor_alg.sh
-- receive_audio_analysis.py
-- now.log
-- debug.log
-- history.log
+- autossh.service: set up a reverse tunne to the cloud VM
+- run_laundry_monitor_alg.sh: Main process, starts receive_audio_analysis.py, provides algorithm evaluations
+- receive_audio_analysis.py: Runs in parrallel, generates now.log with data from transmitter
+- now.log: Regenerated audio analysis on the reciever side
+- debug.log: debug output
+- history.log: History of now.log
+- laundry_webserver.py: Creates the Flask Webserver
+
+Detailed Description of Receiver Software Design
+run_laundry_monitor_alg.sh is the main process. It send_audio_analysis.py because the pigpiod service can't be started and stopped. A loop is started (currently 10 second delay) where record_audio.sh is ran to generate now.wav. The python file process_audio.py which has a dictionary to select frequencies for analysis. Any combination of frequencies can be selected and additional can be added. Currently the algorithm is only focussing on 60Hz and the rest are useless.
+
+frequencies = {
+    'Energy60Hz': 60,
+    'Energy180Hz': 180,
+#    'Energy300Hz': 300,
+#    'Energy430Hz': 430,
+#    'Energy540Hz': 540
+} 
+
+process_audio will generate a now_buffer.log text file which will be transferred to now.log by record_process_send.sh. It will look something like this.
+
+energy at 60Hz: 15.0389
+energy at 180Hz: 13.6403
+
+send_audio_analysis.py will check now.log every 5 seconds for and update. If it sees an update, it will scrape this file and packetize the data. It uses a dynamic payload. For each frequency pair, it packs:
+- A count of the frequency pairs
+- The frequency number as a 2-byte unsigned integer (uint16)
+- The frequency value as a 4-byte float (float32)
+
+[count][freq1_num][freq1_value][freq2_num][freq2_value]...
+  1B      2B         4B          2B         4B
+
+The maximumpayload size is 32, which means 
+- Available space for frequency pairs = 32 bytes - 1 byte (for count) = 31 bytes
+- Number of pairs = 31 bytes ÷ 6 bytes per pair = 5.16 pairs or effectively 5 pairs.
+
+
+
+
 
 Webserver:
 - laundry_webserver.py is AI generated so I designed it's overall function. My goal was to have a status icon at the top "IN USE", "NOT IN USE", "NOT LOGGING". Also a graph of all the recent past readings. Also an output of the history.log file for debugging purposes.
