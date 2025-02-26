@@ -12,10 +12,10 @@ Raspberry Pi XX Running Raspberry Pi OS
 My cloud VM acts as the access point to all my Raspberry Pi Projects. All Raspberry Pi's will reverse SSH into this Pi as well as <port translation> for webserver. I struggle with the SSH and User stuff so I would like to take some time to document here.
 
 The cloud VM is at 34.19.58.168 hosted by Google Cloud Console
-|                                                           | Rasberry Pi User | Cloud VM User | User that Sets up the Tunnel | Cloud VM Command             | Reverse Tunnel Command                                                                         |   |
-|-----------------------------------------------------------|------------------|---------------|------------------------------|------------------------------|------------------------------------------------------------------------------------------------|---|
-| Laundry Monitor (DietPi) <- Cloud Virtual Machine         | root             | david_garges  | laundry_monitor              | ssh -p 6002 root@localhost   | ssh -N -R 0.0.0.0:6002:localhost:22 -i /root/.ssh/cloud_vm2 laundry_monitor@34.19.58.168       |   |
-| Home Assistant (Raspberry Pi OS) <- Cloud Virtual Machine | garges           | david_garges  | home_assistant               | ssh -p 6003 garges@localhost | ssh -N -R 0.0.0.0:6003:localhost:22 -i /home/garges/.ssh/cloud_vm2 home_assistant@34.19.58.168 |   |
+|                                                           | Rasberry Pi User | Cloud VM User | User that Sets up the Tunnel | Cloud VM Command             | Reverse Tunnel Command                                                                         |
+|-----------------------------------------------------------|------------------|---------------|------------------------------|------------------------------|------------------------------------------------------------------------------------------------|
+| Laundry Monitor (DietPi) <- Cloud Virtual Machine         | root             | david_garges  | laundry_monitor              | ssh -p 6002 root@localhost   | ssh -N -R 0.0.0.0:6002:localhost:22 -i /root/.ssh/cloud_vm2 laundry_monitor@34.19.58.168       |
+| Home Assistant (Raspberry Pi OS) <- Cloud Virtual Machine | garges           | david_garges  | home_assistant               | ssh -p 6003 garges@localhost | ssh -N -R 0.0.0.0:6003:localhost:22 -i /home/garges/.ssh/cloud_vm2 home_assistant@34.19.58.168 |
 
 Setting up the NRF24 Modules:
 - using virtual python environment
