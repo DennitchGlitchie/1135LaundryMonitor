@@ -8,6 +8,7 @@ POWER="HIGH"
 NRF_ENV="/home/garges/nrf/bin/activate"
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 AUDIO_RECEIVE_SCRIPT="${SCRIPT_DIR}/receive_audio_analysis.py"
+AMPLITUDE_ALGORITHM_THRESHOLD=15.2
 
 ##############################################################
 ##############################################################
@@ -39,10 +40,10 @@ evaluate_amplitude_algorithm() {
     if [ "$energy_60Hz" = "N/A" ]; then
         echo "AMPLITUDE_ALGORITHM=NULL (60Hz energy not available)"
     else
-        if (( $(echo "$energy_60Hz > 15.15" | bc -l) )); then
-            echo "AMPLITUDE_ALGORITHM=ON (60Hz energy: $energy_60Hz > 15.15)"
+        if (( $(echo "$energy_60Hz > ${AMPLITUDE_ALGORITHM_THRESHOLD}" | bc -l) )); then
+            echo "AMPLITUDE_ALGORITHM=ON (60Hz energy: $energy_60Hz > ${AMPLITUDE_ALGORITHM_THRESHOLD})"
         else
-            echo "AMPLITUDE_ALGORITHM=OFF (60Hz energy: $energy_60Hz <= 15.15)"
+            echo "AMPLITUDE_ALGORITHM=OFF (60Hz energy: $energy_60Hz <= ${AMPLITUDE_ALGORITHM_THRESHOLD})"
         fi
     fi
 }
