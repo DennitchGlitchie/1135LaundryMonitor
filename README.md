@@ -19,6 +19,7 @@ The cloud VM is at 34.19.58.168 hosted by Google Cloud Console
 
 Setting up the NRF24 Modules:
 - The Wiring of the NR24 to the Raspbery Pis are as follows:
+
 | NRF Pin | Raspberry Pi Pin | Raspberry Pi Function |
 |---------|------------------|-----------------------|
 | VCC     | 1                | 3.3V DC Power         |
