@@ -9,7 +9,7 @@ BOM:
 - [USB Extension Cable](https://www.amazon.com/dp/B0793P8XJK?ref=ppx_yo2ov_dt_b_fed_asin_title)
 - Raspberry Pi 4 Model B Running Raspberry Pi OS
 
-My cloud VM acts as the access point to all my Raspberry Pi Projects. All Raspberry Pi's will reverse SSH into this Pi as well as <port translation> for webserver. I struggle with the SSH and User stuff so I would like to take some time to document here.
+This project uses a cloud-based Virtual Machine (VM) as the central access point for all my Raspberry Pi devices. Each Raspberry Pi establishes a reverse SSH connection to the cloud VM, which facilitates secure remote access and port forwarding for both SSH and web services. In particular, port 6083 is used to forward HTTP traffic from the cloud VM to the Raspberry Pi's local web server, enabling secure access to web services hosted on the Pi.
 
 The cloud VM is at 34.19.58.168 hosted by Google Cloud Console
 |                                                           | Rasberry Pi User | Cloud VM User | User that Sets up the Tunnel | Cloud VM Command             | Reverse Tunnel Command                                                                         |
