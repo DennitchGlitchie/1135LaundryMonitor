@@ -5,6 +5,9 @@ import re
 from collections import deque
 from datetime import datetime, timedelta
 
+# Configurable threshold for determining if the machine is in use
+ENERGY_THRESHOLD = 15.2
+
 app = Flask(__name__)
 
 HTML_TEMPLATE = """
@@ -108,6 +111,13 @@ HTML_TEMPLATE = """
             border-radius: 10px;
             font-weight: bold;
         }
+        .description {
+            text-align: center;
+            font-size: 16px;
+            margin: 10px 0 20px 0;
+            padding: 0 20px;
+            line-height: 1.4;
+        }
         .status-in-use {
             background-color: #FFB6C1;
             color: #8B0000;
@@ -141,12 +151,33 @@ HTML_TEMPLATE = """
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
             margin-bottom: 20px;
         }
+        .footer {
+            text-align: center;
+            font-size: 14px;
+            margin-top: 20px;
+            margin-bottom: 20px;
+            color: #444;
+        }
+        .footer a {
+            color: #0066cc;
+            text-decoration: none;
+        }
+        .footer a:hover {
+            text-decoration: underline;
+        }
     </style>
 </head>
 <body>
     <div class="title">The Laundry Machine at 1135 Masonic is:</div>
     <div id="status-banner">Loading...</div>
     <div id="last-updated"></div>
+    <div class="description">
+        This Laundry Monitor monitors the amount of power going into the washing machine. It will only indicate IN USE when the machine is running. It will not tell you if there are clothes in the machine.
+        <br>
+        Feel free to buy me a coffee <a href="https://buymeacoffee.com/davidgarges" target="_blank">https://buymeacoffee.com/davidgarges</a>
+        <br>
+        -David Garges Apt #5
+    </div>
     <div class="chart-container">
         <canvas id="energyChart"></canvas>
     </div>
@@ -180,7 +211,6 @@ def get_log():
         # Get the timestamp from the last paragraph
         latest_timestamp = ''
         is_stale = False
-        threshold = 15.15  # Default threshold
         
         if recent_paragraphs:
             # Get timestamp from the first line of the last paragraph
@@ -190,11 +220,6 @@ def get_log():
                 # Check if log is stale (more than 2 minutes old)
                 last_time = datetime.strptime(latest_timestamp, '%Y-%m-%d %H:%M:%S')
                 is_stale = (datetime.now() - last_time) > timedelta(minutes=2)
-            
-            # Get the threshold from the last paragraph
-            threshold_match = re.search(r'AMPLITUDE_ALGORITHM=\w+ \(60Hz energy: \d+\.\d+ <= (\d+\.\d+)\)', recent_paragraphs[-1])
-            if threshold_match:
-                threshold = float(threshold_match.group(1))
         
         # Update energy history
         energy_history.clear()
@@ -217,7 +242,7 @@ def get_log():
             'is_stale': is_stale,
             'energy_values': list(energy_history),
             'timestamps': list(timestamp_history),
-            'threshold': threshold
+            'threshold': ENERGY_THRESHOLD  # Use the configurable threshold
         })
     except Exception as e:
         return jsonify({
@@ -226,7 +251,7 @@ def get_log():
             'is_stale': True,
             'energy_values': [],
             'timestamps': [],
-            'threshold': 15.15
+            'threshold': ENERGY_THRESHOLD  # Use the configurable threshold
         })
 
 if __name__ == '__main__':
