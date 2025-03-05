@@ -59,13 +59,16 @@ On the Receiver Side:
 Detailed Description of Transmitter Software Design
 run_laundry_monitor_alg.sh is the main process. It starts send_audio_analysis.py because the pigpiod service can't be started and stopped. A loop is started (currently 10 second delay) where record_audio.sh is ran to generate now.wav. The python file process_audio.py which has a dictionary to select frequencies for analysis. Any combination of frequencies can be selected and additional can be added. Currently the algorithm is only focussing on 60Hz and the rest are useless.
 
+```python
 frequencies = {
     'Energy60Hz': 60,
     'Energy180Hz': 180,
 #    'Energy300Hz': 300,
 #    'Energy430Hz': 430,
 #    'Energy540Hz': 540
-} 
+}
+```
+
 
 process_audio will generate a now_buffer.log text file which will be transferred to now.log by record_process_send.sh. It will look something like this.
 
