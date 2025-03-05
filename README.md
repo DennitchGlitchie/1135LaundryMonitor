@@ -4,7 +4,7 @@ BOM:
 - Raspberry Pi 4 Model B Running DietPi OS
 - [NRF24 Transcievers](https://buymeacoffee.com/davidgarges](https://www.amazon.com/dp/B00WG9HO6Q?ref_=ppx_hzsearch_conn_dt_b_fed_asin_title_1))
 - [USB Sound Card Adapter](https://www.amazon.com/dp/B0BQBT2LCV?ref_=ppx_hzsearch_conn_dt_b_fed_asin_title_3)
-- [1ft Extension Cable](https://www.amazon.com/your-orders/orders?_encoding=UTF8&startIndex=20&ref_=ppx_yo2ov_dt_b_pagination_2_3)
+- [1ft Extension Cable]([https://www.amazon.com/your-orders/orders?_encoding=UTF8&startIndex=20&ref_=ppx_yo2ov_dt_b_pagination_2_3](https://www.amazon.com/dp/B000233WJ6?ref=ppx_yo2ov_dt_b_fed_asin_title&th=1))
 - [Mounting Box](https://www.amazon.com/dp/B0D5GPMPT1?ref_=ppx_hzsearch_conn_dt_b_fed_asin_title_1&th=1)
 - [USB Extension Cable](https://www.amazon.com/dp/B0793P8XJK?ref=ppx_yo2ov_dt_b_fed_asin_title)
 - [Open-close current transformer](https://www.alibaba.com/product-detail/p_1601249743695.html?mark=google_shopping&src=sem_ggl&field=UG&from=sem_ggl&cmpgn=22048023749&adgrp=173873712633&fditm=&tgt=pla-2383802603740&locintrst=&locphyscl=9199061&mtchtyp=&ntwrk=g&device=c&dvcmdl=&creative=726171217878&plcmnt=&plcmntcat=&aceid=&position=&gad_source=1&gclid=CjwKCAiAiaC-BhBEEiwAjY99qM2vBJ9dUV6olTKMMVLRuMQiRRnMPF8W5YBDq1MElmutXwmixZF4CxoCa2EQAvD_BwE)
