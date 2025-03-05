@@ -7,6 +7,7 @@ BOM:
 - [1ft Extension Cable](https://www.amazon.com/your-orders/orders?_encoding=UTF8&startIndex=20&ref_=ppx_yo2ov_dt_b_pagination_2_3)
 - [Mounting Box](https://www.amazon.com/dp/B0D5GPMPT1?ref_=ppx_hzsearch_conn_dt_b_fed_asin_title_1&th=1)
 - [USB Extension Cable](https://www.amazon.com/dp/B0793P8XJK?ref=ppx_yo2ov_dt_b_fed_asin_title)
+- [Open-close current transformer](https://www.alibaba.com/product-detail/p_1601249743695.html?mark=google_shopping&src=sem_ggl&field=UG&from=sem_ggl&cmpgn=22048023749&adgrp=173873712633&fditm=&tgt=pla-2383802603740&locintrst=&locphyscl=9199061&mtchtyp=&ntwrk=g&device=c&dvcmdl=&creative=726171217878&plcmnt=&plcmntcat=&aceid=&position=&gad_source=1&gclid=CjwKCAiAiaC-BhBEEiwAjY99qM2vBJ9dUV6olTKMMVLRuMQiRRnMPF8W5YBDq1MElmutXwmixZF4CxoCa2EQAvD_BwE)
 - Raspberry Pi 4 Model B Running Raspberry Pi OS
 
 This project uses a cloud-based Virtual Machine (VM) as the central access point for all my Raspberry Pi devices. Each Raspberry Pi establishes a reverse SSH connection to the cloud VM, which facilitates secure remote access and port forwarding for both SSH and web services. In particular, port 6083 is used to forward HTTP traffic from the cloud VM to the Raspberry Pi's local web server, enabling secure access to web services hosted on the Pi.
