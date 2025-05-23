@@ -124,3 +124,7 @@ BOM:
 
 Added file "monitor.py"
 Added file "wind_webserver.py"
+
+Had to move to ports 5000 and 5001 to keep only 6083 as the port tranlsation. See Wind Monitor NGINX configuration
+
+
