@@ -1,0 +1,12 @@
+[Unit]
+Description=Wind Monitor Webserver Service
+After=network.target
+
+[Service]
+User=root
+WorkingDirectory=/home/garges/WindMonitor
+ExecStart=/home/garges/nrf/bin/python /home/garges/WindMonitor/wind_webserver.py
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
