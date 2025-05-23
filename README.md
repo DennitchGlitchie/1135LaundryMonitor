@@ -114,3 +114,13 @@ Vulnerabilities:
 - laundry_webserver.py and receive_audio_analysis.py need to be aligned in their algorithms - kind of a bummer
 - Since my algorithm is based on amplitude, if things shift, this can change - which was why I was looking into the ratio algorithm but I'm not finding an easy way to use it based of the data so far
 
+5/23/25 Update - Wind Monitor:
+BOM:
+- [Wind Sensor 0-70m/s Environment Signal Output Pulse Type Three Cups Wind Speed Sensor Anemometer](https://www.amazon.com/dp/B084QFGKRP?ref_=ppx_hzsearch_conn_dt_b_fed_asin_title_1)
+- [5 PCS RS-485 MAX485 Transceiver Chip Module TTL to RS-485 Module SCM Development Board](https://www.amazon.com/dp/B00NIOLNAG?ref=ppx_yo2ov_dt_b_fed_asin_title)
+- [FIRMERST 22 Gauge 4 Conductor 200 Feet Tinned Copper Electrical Wire](https://www.amazon.com/dp/B0C4H15KVT?ref=ppx_yo2ov_dt_b_fed_asin_title&th=1)
+- [Hrensaw Small Weatherproof Electrical Connection Box (Inner 5.5 x 3 x 2.2 inch), Outdoor Electrical Box, Waterproof Extension Cord Covers for Plug, Extension Cables, Holiday Lights, Black](https://www.amazon.com/dp/B0C5X3DJ1Z?ref=ppx_yo2ov_dt_b_fed_asin_title)
+
+
+Added file "monitor.py"
+Added file "wind_webserver.py"
