@@ -6,7 +6,7 @@ from collections import deque
 from datetime import datetime, timedelta
 
 # Configurable threshold for determining if the machine is in use
-ENERGY_THRESHOLD = 15.2
+ENERGY_THRESHOLD = 15.25
 
 app = Flask(__name__)
 
@@ -14,7 +14,8 @@ HTML_TEMPLATE = """
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Laundry Monitor Log</title>
+    <title>1135 Laundry Monitor</title>
+    <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon-32x32.png">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
     <script>
         let chart;
@@ -172,6 +173,7 @@ HTML_TEMPLATE = """
     <div id="status-banner">Loading...</div>
     <div id="last-updated"></div>
     <div class="description">
+        <br> 
         This Laundry Monitor monitors the amount of power going into the washing machine. It will only indicate IN USE when the machine is running. It will not tell you if there are clothes in the machine.
         <br>
         Feel free to buy me a coffee <a href="https://buymeacoffee.com/davidgarges" target="_blank">https://buymeacoffee.com/davidgarges</a>
@@ -255,4 +257,4 @@ def get_log():
         })
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=80)
+    app.run(host='0.0.0.0', port=5000)
