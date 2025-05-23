@@ -1,0 +1,88 @@
+garges@raspberrypi:/etc/nginx/sites-available $ cat 1135laundrymonitor.davidgarges.com 
+server {
+    listen 80;
+    server_name 1135laundrymonitor.davidgarges.com;
+
+    location / {
+        proxy_pass http://127.0.0.1:5000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+garges@raspberrypi:/etc/nginx/sites-available $ cat 1135windmonitor.davidgarges.com 
+server {
+    listen 80;
+    server_name 1135windmonitor.davidgarges.com;
+
+    location / {
+        proxy_pass http://127.0.0.1:5001;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+garges@raspberrypi:/etc/nginx/sites-available $ 
+logout
+Connection to localhost closed.
+david_garges@cloud-vm2:~$ cd /etc/nginx/sites-available/
+david_garges@cloud-vm2:/etc/nginx/sites-available$ ls
+1135laundrymonitor.davidgarges.com  1135windmonitor.davidgarges.com  davidgarges.com  default  trumptracker.davidgarges.com
+david_garges@cloud-vm2:/etc/nginx/sites-available$ cat 1135laundrymonitor.davidgarges.com 
+server {
+    server_name 1135laundrymonitor.davidgarges.com;
+
+    location / {
+        proxy_pass http://34.19.58.168:6083;  # Forward traffic to Raspberry Pi on port 6083
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    listen 443 ssl; # managed by Certbot
+    ssl_certificate /etc/letsencrypt/live/1135laundrymonitor.davidgarges.com/fullchain.pem; # managed by Certbot
+    ssl_certificate_key /etc/letsencrypt/live/1135laundrymonitor.davidgarges.com/privkey.pem; # managed by Certbot
+    include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
+}
+
+server {
+    if ($host = 1135laundrymonitor.davidgarges.com) {
+        return 301 https://$host$request_uri;
+    } # managed by Certbot
+
+    listen 80;
+    server_name 1135laundrymonitor.davidgarges.com;
+    return 404; # managed by Certbot
+}
+david_garges@cloud-vm2:/etc/nginx/sites-available$ cat 1135windmonitor.davidgarges.com 
+server {
+    server_name 1135windmonitor.davidgarges.com;
+
+    location / {
+        proxy_pass http://34.19.58.168:6083;  # Forward traffic to Raspberry Pi on port 6083
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    listen 443 ssl;
+    ssl_certificate /etc/letsencrypt/live/1135windmonitor.davidgarges.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/1135windmonitor.davidgarges.com/privkey.pem;
+    include /etc/letsencrypt/options-ssl-nginx.conf;
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
+}
+
+server {
+    if ($host = 1135windmonitor.davidgarges.com) {
+        return 301 https://$host$request_uri;
+    }
+
+    listen 80;
+    server_name 1135windmonitor.davidgarges.com;
+    return 404;
+}
