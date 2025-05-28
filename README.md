@@ -127,4 +127,10 @@ Added file "wind_webserver.py"
 
 Had to move to ports 5000 and 5001 to keep only 6083 as the port tranlsation. See Wind Monitor NGINX configuration
 
+5/28/25 Update - Wind Monitor:
+- Seperated the wind webserver into seperate files to have the logging and the webserver generations seperate. 
+- wind_logger.py
+- wind_webserver.py
+- start_wind_monitor.sh
+
 
