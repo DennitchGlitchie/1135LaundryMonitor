@@ -132,5 +132,5 @@ Had to move to ports 5000 and 5001 to keep only 6083 as the port tranlsation. Se
 - wind_logger.py
 - wind_webserver.py
 - start_wind_monitor.sh
-
+0 0 * * 3 /home/garges/WindMonitor/Cleanup_logs.sh >> /home/garges/WindMonitor/log_trim_report.log 2>&1
 
