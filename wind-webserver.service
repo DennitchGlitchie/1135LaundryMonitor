@@ -1,12 +1,16 @@
 [Unit]
-Description=Wind Monitor Webserver Service
+Description=Wind Monitor Combined Service
 After=network.target
 
 [Service]
-User=root
+Type=simple
+ExecStart=/home/garges/WindMonitor/start_wind_monitor.sh
 WorkingDirectory=/home/garges/WindMonitor
-ExecStart=/home/garges/nrf/bin/python /home/garges/WindMonitor/wind_webserver.py
+User=garges
 Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
 
 [Install]
 WantedBy=multi-user.target
