@@ -1,37 +1,39 @@
 #!/bin/bash
 
-# Script to remove the first half of log files
-# Run this at midnight on Wednesdays
+# Script to clean up CSV log file by keeping the header and second half of data
+# Intended to run at midnight on Wednesdays
 
 LOG_DIR="/home/garges/WindMonitor"
 TEMP_DIR="/tmp"
+CSV_LOG="$LOG_DIR/wind_log.csv"
 
-# Function to process a log file
-cleanup_log() {
+# Function to clean up CSV file
+cleanup_csv_log() {
     local logfile="$1"
-    
+
     if [ -f "$logfile" ]; then
         echo "Processing $logfile..."
-        
-        # Count total lines
+
         total_lines=$(wc -l < "$logfile")
-        
-        # Calculate lines to keep (second half)
-        lines_to_keep=$((total_lines / 2))
-        
-        # Create temporary file with second half
-        tail -n "$lines_to_keep" "$logfile" > "$TEMP_DIR/temp_log_$$"
-        
-        # Replace original file with second half
-        mv "$TEMP_DIR/temp_log_$$" "$logfile"
-        
-        echo "Reduced $logfile from $total_lines to $lines_to_keep lines"
+        data_lines=$((total_lines - 1))  # Exclude header
+        lines_to_keep=$((data_lines / 2))
+
+        # Create temp file with header
+        head -n 1 "$logfile" > "$TEMP_DIR/temp_csv_log_$$"
+
+        # Append second half of data rows
+        tail -n "$lines_to_keep" "$logfile" >> "$TEMP_DIR/temp_csv_log_$$"
+
+        # Replace original file with trimmed version
+        mv "$TEMP_DIR/temp_csv_log_$$" "$logfile"
+
+        echo "Trimmed $logfile: kept header + $lines_to_keep of $data_lines data rows"
     else
-        echo "Log file $logfile not found"
+        echo "CSV log file $logfile not found"
     fi
 }
 
-# Process the wind log file
-cleanup_log "$LOG_DIR/wind_log.jsonl"
+# Run CSV cleanup
+cleanup_csv_log "$CSV_LOG"
 
-echo "Log cleanup completed at $(date)"
+echo "CSV log cleanup completed at $(date)"
