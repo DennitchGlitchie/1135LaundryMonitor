@@ -1,10 +1,10 @@
-import json
+import csv
 import time
+import os
 from collections import deque
-from flask import Flask, render_template_string, jsonify, send_from_directory, url_for
+from flask import Flask, render_template_string, jsonify, send_from_directory, url_for, request
 import threading
 import datetime
-import os
 
 app = Flask(__name__, 
             static_folder='/home/garges/WindMonitor/static',
@@ -14,129 +14,48 @@ app = Flask(__name__,
 os.makedirs('/home/garges/WindMonitor/static', exist_ok=True)
 
 # Configuration
-LOG_FILE = "/home/garges/WindMonitor/wind_log.jsonl"
+LOG_FILE = "/home/garges/WindMonitor/wind_log.csv"
 TIME_WINDOWS = [1, 5, 10, 30, 60]
 GRAPH_HISTORY_MINUTES = 60
 
-# Wind calculation constants
-PULSES_PER_ROTATION = 20
-MPS_PER_ROTATION = 1.75
-PULSE_TO_MPS = MPS_PER_ROTATION / PULSES_PER_ROTATION
-MPS_TO_MPH = 2.23694
+# Keep up to 3 days of data in memory (4320 minutes = 259200 seconds)
+MAX_HISTORY_SECONDS = 259200
 
-# Keep up to 3 days of data in memory (4320 minutes)
-MAX_HISTORY_MINUTES = 4320
-
-# Global data storage - store log entries (one per second)
-log_entries = deque()  # Each entry has timestamp, pulses count, etc.
-current_data = {f"{w}s": {"pulses": 0, "mps": 0.0, "mph": 0.0} for w in TIME_WINDOWS}
+# Global data storage
+log_entries = deque(maxlen=MAX_HISTORY_SECONDS)  # Each entry is a dict with time and wind speeds
+current_data = {f"{w}s": 0.0 for w in TIME_WINDOWS}
 current_data["last_updated"] = ""
-history_data = {f"{w}s": [] for w in TIME_WINDOWS}
 
-def calculate_wind_speed_from_pulse_rate(pulses_per_second):
-    """Calculate wind speed from pulses per second"""
-    wind_mps = pulses_per_second * PULSE_TO_MPS
-    wind_mph = wind_mps * MPS_TO_MPH
-    return wind_mps, wind_mph
-
-def read_log_file():
-    """Read and parse the log file, returning new entries since last read"""
+def read_csv_file():
+    """Read the CSV file and return new entries since last read"""
     try:
         if not os.path.exists(LOG_FILE):
             return []
         
         new_entries = []
-        last_known_timestamp = log_entries[-1]['timestamp'] if log_entries else 0
+        last_known_time = log_entries[-1]['time'] if log_entries else ""
         
-        with open(LOG_FILE, 'r') as f:
-            for line in f:
-                line = line.strip()
-                if line:
-                    try:
-                        entry = json.loads(line)
-                        # Only add if we haven't seen this timestamp before
-                        if entry['timestamp'] > last_known_timestamp:
-                            new_entries.append(entry)
-                    except json.JSONDecodeError:
-                        continue
+        with open(LOG_FILE, 'r', newline='') as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                # Only add if we haven't seen this timestamp before
+                if row['time'] > last_known_time:
+                    # Convert wind speeds to float, handling empty values
+                    entry = {'time': row['time']}
+                    for window in TIME_WINDOWS:
+                        try:
+                            entry[f"{window}s"] = float(row[str(window)]) if row[str(window)] else None
+                        except (ValueError, KeyError):
+                            entry[f"{window}s"] = None
+                    new_entries.append(entry)
+        
         return new_entries
     except Exception as e:
-        print(f"Error reading log file: {e}")
+        print(f"Error reading CSV file: {e}")
         return []
 
-def calculate_window_data(window_seconds):
-    """Calculate wind data for a specific time window by summing recent entries"""
-    if not log_entries:
-        return {"pulses": 0, "mps": 0.0, "mph": 0.0}
-    
-    # Get the last N entries (one per second)
-    entries_needed = min(window_seconds, len(log_entries))
-    recent_entries = list(log_entries)[-entries_needed:]
-    
-    if not recent_entries:
-        return {"pulses": 0, "mps": 0.0, "mph": 0.0}
-    
-    # Sum up pulses from recent entries
-    total_pulses = sum(entry['pulses'] for entry in recent_entries)
-    
-    # Calculate average pulses per second over the window
-    pulses_per_second = total_pulses / window_seconds
-    
-    # Calculate wind speed
-    mps, mph = calculate_wind_speed_from_pulse_rate(pulses_per_second)
-    
-    return {
-        "pulses": total_pulses,
-        "mps": round(mps, 2),
-        "mph": round(mph, 2)
-    }
-
-def generate_history_data():
-    """Generate history data for charts using proper sliding window calculations"""
-    if not log_entries:
-        return
-    
-    # Convert log_entries to list for easier indexing
-    entries_list = list(log_entries)
-    
-    for window_seconds in TIME_WINDOWS:
-        window_key = f"{window_seconds}s"
-        history_points = []
-        
-        # For each entry, calculate the wind speed for that time using the sliding window
-        for i in range(len(entries_list)):
-            # Get entries for the sliding window ending at this point
-            start_idx = max(0, i - window_seconds + 1)
-            window_entries = entries_list[start_idx:i+1]
-            
-            if len(window_entries) >= window_seconds or i >= len(entries_list) - window_seconds:
-                # Sum pulses in the window
-                total_pulses = sum(entry['pulses'] for entry in window_entries)
-                # Calculate average pulses per second
-                actual_window_size = len(window_entries)
-                pulses_per_second = total_pulses / actual_window_size if actual_window_size > 0 else 0
-                # Calculate wind speed
-                mps, mph = calculate_wind_speed_from_pulse_rate(pulses_per_second)
-                
-                entry = entries_list[i]
-                time_str = entry['time_str'].split()[1]  # Just time, not date
-                
-                history_points.append({
-                    "timestamp": entry['timestamp'],
-                    "time_str": time_str,
-                    "mph": round(mph, 2)
-                })
-        
-        # For performance, thin out the history data if we have too many points
-        if len(history_points) > 1000:
-            # Keep every Nth point to reduce to about 500 points
-            step = len(history_points) // 500
-            history_points = history_points[::step]
-        
-        history_data[window_key] = history_points
-
-def update_data_from_log():
-    """Continuously read log file and update current/history data"""
+def update_data_from_csv():
+    """Continuously read CSV file and update current data"""
     last_file_size = 0
     
     while True:
@@ -146,35 +65,72 @@ def update_data_from_log():
                 current_size = os.path.getsize(LOG_FILE)
                 if current_size != last_file_size:
                     # Read new entries
-                    new_entries = read_log_file()
+                    new_entries = read_csv_file()
                     
                     # Add new entries to our deque
                     for entry in new_entries:
                         log_entries.append(entry)
                     
-                    # Prune old data (keep last MAX_HISTORY_MINUTES worth of seconds)
-                    max_entries = MAX_HISTORY_MINUTES * 60
-                    while len(log_entries) > max_entries:
-                        log_entries.popleft()
-                    
-                    # Update current data for all time windows
-                    for window in TIME_WINDOWS:
-                        window_key = f"{window}s"
-                        current_data[window_key] = calculate_window_data(window)
-                    
-                    # Update history data
-                    generate_history_data()
-                    
-                    # Update last_updated timestamp
+                    # Update current data with most recent valid values
                     if log_entries:
-                        current_data["last_updated"] = log_entries[-1]['time_str']
+                        latest_entry = log_entries[-1]
+                        for window in TIME_WINDOWS:
+                            window_key = f"{window}s"
+                            if latest_entry[window_key] is not None:
+                                current_data[window_key] = latest_entry[window_key]
+                        
+                        current_data["last_updated"] = latest_entry['time']
                     
                     last_file_size = current_size
             
         except Exception as e:
-            print(f"Error updating data from log: {e}")
+            print(f"Error updating data from CSV: {e}")
         
         time.sleep(1)  # Check for updates every second
+
+def get_history_data_for_minutes(minutes):
+    """Get history data for the specified number of minutes"""
+    if not log_entries:
+        return {f"{w}s": [] for w in TIME_WINDOWS}
+    
+    # Calculate cutoff time
+    try:
+        latest_time = datetime.datetime.strptime(log_entries[-1]['time'], "%Y-%m-%d %H:%M:%S")
+        cutoff_time = latest_time - datetime.timedelta(minutes=minutes)
+        cutoff_str = cutoff_time.strftime("%Y-%m-%d %H:%M:%S")
+    except:
+        # Fallback: just use the last N entries
+        max_entries = minutes * 60
+        relevant_entries = list(log_entries)[-max_entries:] if len(log_entries) > max_entries else list(log_entries)
+        cutoff_str = relevant_entries[0]['time'] if relevant_entries else ""
+    
+    # Filter entries
+    filtered_entries = [entry for entry in log_entries if entry['time'] >= cutoff_str]
+    
+    # Organize by time window
+    history_data = {}
+    for window in TIME_WINDOWS:
+        window_key = f"{window}s"
+        window_history = []
+        
+        for entry in filtered_entries:
+            if entry[window_key] is not None:
+                # Extract just the time part for display
+                time_part = entry['time'].split()[1] if ' ' in entry['time'] else entry['time']
+                window_history.append({
+                    "time": entry['time'],
+                    "time_str": time_part,
+                    "mph": entry[window_key]
+                })
+        
+        # Thin out data if too many points (for performance)
+        if len(window_history) > 500:
+            step = len(window_history) // 500
+            window_history = window_history[::step]
+        
+        history_data[window_key] = window_history
+    
+    return history_data
 
 HTML_TEMPLATE = '''<!DOCTYPE html>
 <html lang="en">
@@ -222,8 +178,8 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         <div class="card">
             <h2>Current Readings</h2>
             <table>
-                <thead><tr><th>Time Window</th><th>Pulses</th><th>m/s</th><th>mph</th></tr></thead>
-                <tbody id="readings-table"><tr><td>Loading...</td><td></td><td></td><td></td></tr></tbody>
+                <thead><tr><th>Time Window</th><th>mph</th></tr></thead>
+                <tbody id="readings-table"><tr><td>Loading...</td><td></td></tr></tbody>
             </table>
         </div>
         
@@ -242,84 +198,93 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
 
     <script>
         let windChart;
-        const TIME_WINDOWS = {{ time_windows|safe }}.map(w => w + "s");
         let graphHistoryMinutes = {{ graph_history_minutes }};
         
-        const colors = ['#2980b9', '#27ae60', '#f39c12', '#8e44ad', '#e74c3c', '#16a085', '#d35400', '#2c3e50', '#7f8c8d', '#c0392b'];
+        const colors = ['#2980b9', '#27ae60', '#f39c12', '#8e44ad', '#e74c3c'];
         
         function updateCurrentData() {
             fetch('/api/current')
                 .then(r => r.json())
                 .then(data => {
-                    const mainWindow = data['10s'] || data[Object.keys(data).find(k => k.endsWith('s'))];
-                    if (mainWindow) document.getElementById('current-wind').textContent = mainWindow.mph.toFixed(2);
+                    // Use 10 second window for main display, fallback to any available
+                    const mainSpeed = data['10s'] || data['5s'] || data['1s'] || 0;
+                    document.getElementById('current-wind').textContent = mainSpeed.toFixed(2);
                     
-                    document.getElementById('last-updated').textContent = data.last_updated;
+                    document.getElementById('last-updated').textContent = data.last_updated || 'Never';
                     
-                    const windowKeys = Object.keys(data).filter(k => k.endsWith('s')).sort((a, b) => parseInt(a) - parseInt(b));
-                    document.getElementById('readings-table').innerHTML = windowKeys.map(w => 
-                        `<tr><td>${w}</td><td>${data[w].pulses}</td><td>${data[w].mps.toFixed(2)}</td><td>${data[w].mph.toFixed(2)}</td></tr>`
+                    // Update readings table
+                    const windows = ['1s', '5s', '10s', '30s', '60s'];
+                    const tableHtml = windows.map(w => 
+                        `<tr><td>${w}</td><td>${(data[w] || 0).toFixed(2)}</td></tr>`
                     ).join('');
+                    document.getElementById('readings-table').innerHTML = tableHtml;
                 })
                 .catch(console.error);
         }
         
         function updateHistoryChart() {
-            fetch('/api/history')
+            fetch(`/api/history?minutes=${graphHistoryMinutes}`)
                 .then(r => r.json())
                 .then(data => {
                     const windowsToPlot = ['1s', '10s', '30s'];
-                    const now = Date.now() / 1000;
-                    const cutoffTime = now - (graphHistoryMinutes * 60);
                     
                     const datasets = windowsToPlot.map((windowKey, i) => {
                         const windowData = data[windowKey] || [];
-                        const filteredData = windowData.filter(e => e.timestamp >= cutoffTime);
-                        const label = `${windowKey} Wind Speed`;
                         
                         return {
-                            label: label,
-                            data: filteredData.map(item => ({ x: item.time_str, y: item.mph })),
+                            label: `${windowKey.replace('s', ' second')} average`,
+                            data: windowData.map(item => ({ 
+                                x: item.time_str,
+                                y: item.mph 
+                            })),
                             borderColor: colors[i],
                             backgroundColor: `${colors[i]}33`,
-                            tension: 0.3,
+                            tension: 0.1,
                             fill: false,
-                            pointRadius: filteredData.length > 100 ? 0 : 2
+                            pointRadius: windowData.length > 100 ? 0 : 2
                         };
                     }).filter(d => d.data.length > 0);
                     
                     if (!datasets.length) return;
                     
-                    const labels = datasets.reduce((longest, d) => d.data.length > longest.length ? d.data : longest, []).map(item => item.x);
+                    // Get all unique time labels and sort them
+                    const allLabels = new Set();
+                    datasets.forEach(dataset => {
+                        dataset.data.forEach(point => allLabels.add(point.x));
+                    });
+                    const sortedLabels = Array.from(allLabels).sort();
                     
                     if (windChart) {
-                        windChart.data.labels = labels;
-                        
-                        datasets.forEach((newDataset, i) => {
-                            if (windChart.data.datasets[i]) {
-                                windChart.data.datasets[i].data = newDataset.data;
-                            } else {
-                                windChart.data.datasets.push(newDataset);
-                            }
-                        });
-                        
-                        if (windChart.data.datasets.length > datasets.length) {
-                            windChart.data.datasets.splice(datasets.length);
-                        }
-                        
+                        windChart.data.labels = sortedLabels;
+                        windChart.data.datasets = datasets;
                         windChart.update('none');
                     } else {
                         const ctx = document.getElementById('windChart').getContext('2d');
                         windChart = new Chart(ctx, {
                             type: 'line',
-                            data: { labels, datasets },
+                            data: { 
+                                labels: sortedLabels,
+                                datasets: datasets 
+                            },
                             options: {
                                 responsive: true,
                                 maintainAspectRatio: false,
                                 interaction: { mode: 'index', intersect: false },
                                 scales: {
-                                    y: { beginAtZero: true, title: { display: true, text: 'Wind Speed (mph)' }},
-                                    x: { title: { display: true, text: 'Time' }}
+                                    y: { 
+                                        beginAtZero: true, 
+                                        title: { display: true, text: 'Wind Speed (mph)' }
+                                    },
+                                    x: { 
+                                        title: { display: true, text: 'Time' },
+                                        ticks: {
+                                            maxTicksLimit: 10,
+                                            callback: function(value, index) {
+                                                const step = Math.ceil(sortedLabels.length / 8);
+                                                return index % step === 0 ? sortedLabels[index] : '';
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         });
@@ -342,7 +307,7 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         updateCurrentData();
         updateHistoryChart();
         setInterval(updateCurrentData, 1000);
-        setInterval(updateHistoryChart, 5000);
+        setInterval(updateHistoryChart, 10000);
     </script>
 </body>
 </html>'''
@@ -354,7 +319,6 @@ def favicon():
 @app.route('/')
 def index():
     return render_template_string(HTML_TEMPLATE, 
-                                time_windows=TIME_WINDOWS,
                                 graph_history_minutes=GRAPH_HISTORY_MINUTES)
 
 @app.route('/api/current')
@@ -363,20 +327,22 @@ def get_current_data():
 
 @app.route('/api/history')
 def get_history_data():
+    minutes = int(request.args.get('minutes', GRAPH_HISTORY_MINUTES))
+    history_data = get_history_data_for_minutes(minutes)
     return jsonify(history_data)
 
 def main():
     try:
-        # Start background log reading thread
-        log_thread = threading.Thread(target=update_data_from_log, daemon=True)
-        log_thread.start()
+        # Start background CSV reading thread
+        csv_thread = threading.Thread(target=update_data_from_csv, daemon=True)
+        csv_thread.start()
         
         # Check favicon file
         favicon_path = os.path.join(app.static_folder, 'wind_favicon-32x32_V2.png')
         print(f"Favicon: {'✓ Found' if os.path.exists(favicon_path) else '✗ Missing'} - {favicon_path}")
         
         # Check log file
-        print(f"Log file: {'✓ Found' if os.path.exists(LOG_FILE) else '✗ Missing'} - {LOG_FILE}")
+        print(f"CSV file: {'✓ Found' if os.path.exists(LOG_FILE) else '✗ Missing'} - {LOG_FILE}")
         
         print("Starting Flask server on port 5001...")
         app.run(host='0.0.0.0', port=5001, debug=False)
